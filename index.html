@@ -3,8 +3,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#101020">
 <title>Neon Kaçış | Mobil Oyun</title>
 
@@ -35,32 +34,40 @@ html, body {
 }
 
 header {
-    height: 65px;
+    height: 60px;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px;
+    padding: 0 12px;
     background: #101025;
     border-bottom: 1px solid #252547;
 }
 
 .logo {
-    font-size: 19px;
-    font-weight: 900;
     color: #00f0ff;
-    letter-spacing: 1px;
+    font-weight: 900;
+    font-size: 17px;
 }
 
 .stats {
     display: flex;
-    gap: 18px;
+    gap: 12px;
     font-family: monospace;
-    font-size: 15px;
+    font-size: 13px;
 }
 
 .stats span {
     color: #00f0ff;
+}
+
+#muteBtn {
+    background: #252543;
+    color: white;
+    border: 0;
+    border-radius: 8px;
+    padding: 9px;
+    cursor: pointer;
 }
 
 #gameArea {
@@ -72,48 +79,45 @@ header {
 }
 
 canvas {
-    display: block;
     width: 100%;
     height: 100%;
+    display: block;
     touch-action: none;
 }
 
 .screen {
     position: absolute;
     inset: 0;
+    z-index: 5;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
-    background: rgba(8, 8, 22, .88);
-    z-index: 5;
+    background: rgba(8, 8, 22, .9);
 }
 
-.screen.hidden {
-    display: none;
+.hidden {
+    display: none !important;
 }
 
 .panel {
     width: min(100%, 420px);
-    padding: 35px 25px;
-    text-align: center;
+    padding: 30px 22px;
     background: #14142b;
     border: 1px solid #303052;
     border-radius: 20px;
-    box-shadow: 0 0 40px rgba(0, 240, 255, .08);
+    text-align: center;
 }
 
 .panel h1 {
-    margin: 0 0 15px;
+    font-size: clamp(30px, 8vw, 46px);
     color: #00f0ff;
-    font-size: clamp(32px, 8vw, 48px);
-    text-shadow: 0 0 20px rgba(0, 240, 255, .4);
+    margin: 0 0 15px;
 }
 
 .panel h2 {
     color: #ff003c;
-    font-size: 38px;
-    margin: 0 0 15px;
+    font-size: 36px;
 }
 
 .panel p {
@@ -121,21 +125,17 @@ canvas {
     line-height: 1.6;
 }
 
-button {
-    border: 0;
-    cursor: pointer;
-    font-family: inherit;
-}
-
 .mainBtn {
     margin-top: 20px;
     width: 100%;
     padding: 17px;
+    border: 0;
     border-radius: 12px;
     background: #00f0ff;
     color: #07101a;
     font-size: 17px;
     font-weight: 900;
+    cursor: pointer;
 }
 
 .mainBtn:active {
@@ -143,43 +143,21 @@ button {
 }
 
 footer {
-    min-height: 44px;
+    min-height: 40px;
     flex-shrink: 0;
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     background: #101025;
     color: #8888aa;
-    font-size: 12px;
+    font-size: 11px;
     padding-bottom: env(safe-area-inset-bottom);
 }
 
-#muteBtn {
-    background: #252543;
-    color: white;
-    border-radius: 8px;
-    padding: 9px 12px;
-    font-size: 16px;
-}
-
 @media(max-width: 600px) {
-    header {
-        height: 58px;
-        padding: 0 12px;
-    }
-
-    .logo {
-        font-size: 15px;
-    }
-
-    .stats {
-        font-size: 12px;
-        gap: 10px;
-    }
-
-    footer {
-        font-size: 11px;
-    }
+    .logo { font-size: 14px; }
+    .stats { font-size: 11px; gap: 7px; }
+    header { height: 55px; }
 }
 </style>
 </head>
@@ -187,55 +165,41 @@ footer {
 <body>
 
 <div id="app">
+    <header>
+        <div class="logo">NEON KAÇIŞ</div>
 
-<header>
-    <div class="logo">NEON KAÇIŞ</div>
+        <div class="stats">
+            <div>SÜRE: <span id="score">0.0</span></div>
+            <div>REKOR: <span id="best">0.0</span></div>
+        </div>
 
-    <div class="stats">
-        <div>SÜRE: <span id="score">0.0</span></div>
-        <div>REKOR: <span id="best">0.0</span></div>
-    </div>
+        <button id="muteBtn" aria-label="Sesi aç veya kapat">🔊</button>
+    </header>
 
-    <button id="muteBtn" aria-label="Sesi aç veya kapat">🔊</button>
-</header>
+    <div id="gameArea">
+        <canvas id="game"></canvas>
 
-<div id="gameArea">
-    <canvas id="game"></canvas>
+        <div class="screen" id="startScreen">
+            <div class="panel">
+                <h1>NEON KAÇIŞ</h1>
+                <p>Kırmızı düşmanlardan kaç ve mümkün olduğunca uzun süre hayatta kal!</p>
+                <p>📱 Mobil: Parmağınla sürükle<br>💻 Bilgisayar: WASD veya yön tuşları</p>
+                <button class="mainBtn" id="startBtn">OYUNA BAŞLA</button>
+            </div>
+        </div>
 
-    <div class="screen" id="startScreen">
-        <div class="panel">
-            <h1>NEON KAÇIŞ</h1>
-            <p>
-                Kırmızı düşmanlardan kaç ve mümkün
-                olduğunca uzun süre hayatta kal!
-            </p>
-            <p>
-                📱 Mobil: Parmağınla sürükle<br>
-                💻 Bilgisayar: WASD veya yön tuşları
-            </p>
-            <button class="mainBtn" id="startBtn">
-                OYUNA BAŞLA
-            </button>
+        <div class="screen hidden" id="gameOverScreen">
+            <div class="panel">
+                <h2>OYUN BİTTİ!</h2>
+                <p>Hayatta kaldığın süre:</p>
+                <h1 id="finalScore">0.0 sn</h1>
+                <p id="recordMessage"></p>
+                <button class="mainBtn" id="restartBtn">TEKRAR OYNA</button>
+            </div>
         </div>
     </div>
 
-    <div class="screen hidden" id="gameOverScreen">
-        <div class="panel">
-            <h2>OYUN BİTTİ!</h2>
-            <p>Hayatta kaldığın süre:</p>
-            <h1 id="finalScore">0.0 sn</h1>
-            <p id="recordMessage"></p>
-            <button class="mainBtn" id="restartBtn">
-                TEKRAR OYNA
-            </button>
-        </div>
-    </div>
-</div>
-
-<footer>
-    NEON KAÇIŞ • Mobil ve Masaüstü
-</footer>
-
+    <footer>NEON KAÇIŞ • Mobil ve Masaüstü</footer>
 </div>
 
 <script>
@@ -254,6 +218,61 @@ const startScreen = document.getElementById("startScreen");
 const gameOverScreen = document.getElementById("gameOverScreen");
 const muteBtn = document.getElementById("muteBtn");
 
+// SES SİSTEMİ - MOBİL UYUMLU
+const music = new Audio("oyunicimuzik.mp3");
+const gameOverAudio = new Audio("oyunbitti.mp3");
+
+music.loop = true;
+music.preload = "auto";
+music.volume = 0.5;
+
+gameOverAudio.preload = "auto";
+gameOverAudio.volume = 0.7;
+
+let muted = false;
+
+function startMusic() {
+    music.pause();
+    music.currentTime = 0;
+    music.muted = muted;
+
+    if (!muted) {
+        music.play().catch(error => {
+            console.log("Müzik başlatılamadı:", error);
+        });
+    }
+}
+
+function stopMusic() {
+    music.pause();
+    music.currentTime = 0;
+}
+
+function playGameOverSound() {
+    if (muted) return;
+
+    gameOverAudio.pause();
+    gameOverAudio.currentTime = 0;
+
+    gameOverAudio.play().catch(error => {
+        console.log("Oyun bitiş sesi çalınamadı:", error);
+    });
+}
+
+muteBtn.addEventListener("click", () => {
+    muted = !muted;
+
+    music.muted = muted;
+    gameOverAudio.muted = muted;
+
+    muteBtn.textContent = muted ? "🔇" : "🔊";
+
+    if (!muted && running && music.paused) {
+        music.play().catch(console.log);
+    }
+});
+
+// OYUN DEĞİŞKENLERİ
 let width = 0;
 let height = 0;
 let running = false;
@@ -282,25 +301,6 @@ const player = {
     speed: 360
 };
 
-// Ses dosyaları isteğe bağlıdır.
-const music = new Audio("OYUN_İÇİ_MÜZİK.mp3");
-const gameOverAudio = new Audio("OYUN_BİTTİ.mp3");
-
-music.loop = true;
-music.volume = 0.35;
-gameOverAudio.volume = 0.6;
-
-let muted = false;
-
-muteBtn.addEventListener("click", () => {
-    muted = !muted;
-
-    music.muted = muted;
-    gameOverAudio.muted = muted;
-
-    muteBtn.textContent = muted ? "🔇" : "🔊";
-});
-
 function resizeCanvas() {
     const rect = area.getBoundingClientRect();
 
@@ -314,15 +314,8 @@ function resizeCanvas() {
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    player.x = Math.max(
-        player.r,
-        Math.min(width - player.r, player.x)
-    );
-
-    player.y = Math.max(
-        player.r,
-        Math.min(height - player.r, player.y)
-    );
+    player.x = Math.max(player.r, Math.min(width - player.r, player.x));
+    player.y = Math.max(player.r, Math.min(height - player.r, player.y));
 
     if (!running) draw();
 }
@@ -356,9 +349,6 @@ function startGame() {
     gameOverAudio.pause();
     gameOverAudio.currentTime = 0;
 
-    music.currentTime = 0;
-    music.play().catch(() => {});
-
     animationId = requestAnimationFrame(gameLoop);
 }
 
@@ -367,8 +357,7 @@ function spawnEnemy() {
 
     enemies.push({
         x: width + size,
-        y: size / 2 + Math.random() *
-           Math.max(0, height - size),
+        y: size / 2 + Math.random() * Math.max(0, height - size),
         r: size / 2,
         speed: 190 + Math.random() * 190 + elapsed * 2
     });
@@ -388,27 +377,16 @@ function update(dt) {
 
     if (dx !== 0 || dy !== 0) {
         const length = Math.hypot(dx, dy);
-
         player.x += dx / length * player.speed * dt;
         player.y += dy / length * player.speed * dt;
     }
 
-    player.x = Math.max(
-        player.r,
-        Math.min(width - player.r, player.x)
-    );
-
-    player.y = Math.max(
-        player.r,
-        Math.min(height - player.r, player.y)
-    );
+    player.x = Math.max(player.r, Math.min(width - player.r, player.x));
+    player.y = Math.max(player.r, Math.min(height - player.r, player.y));
 
     spawnTimer += dt;
 
-    const spawnInterval = Math.max(
-        0.14,
-        0.5 - elapsed * 0.008
-    );
+    const spawnInterval = Math.max(0.14, 0.5 - elapsed * 0.008);
 
     while (spawnTimer >= spawnInterval) {
         spawnEnemy();
@@ -417,7 +395,6 @@ function update(dt) {
 
     for (let i = enemies.length - 1; i >= 0; i--) {
         const enemy = enemies[i];
-
         enemy.x -= enemy.speed * dt;
 
         if (enemy.x + enemy.r < 0) {
@@ -478,21 +455,17 @@ function drawGrid() {
 
 function drawCircle(x, y, radius, color, glow) {
     ctx.save();
-
     ctx.shadowColor = color;
     ctx.shadowBlur = glow;
-
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.fillStyle = color;
     ctx.fill();
-
     ctx.restore();
 }
 
 function draw() {
     ctx.clearRect(0, 0, width, height);
-
     ctx.fillStyle = "#1a1a2e";
     ctx.fillRect(0, 0, width, height);
 
@@ -500,58 +473,25 @@ function draw() {
 
     for (const particle of particles) {
         ctx.globalAlpha = Math.max(0, particle.life / 0.35);
-
-        drawCircle(
-            particle.x,
-            particle.y,
-            particle.r,
-            "#00f0ff",
-            8
-        );
+        drawCircle(particle.x, particle.y, particle.r, "#00f0ff", 8);
     }
 
     ctx.globalAlpha = 1;
 
     for (const enemy of enemies) {
-        drawCircle(
-            enemy.x,
-            enemy.y,
-            enemy.r,
-            "#ff003c",
-            15
-        );
+        drawCircle(enemy.x, enemy.y, enemy.r, "#ff003c", 15);
 
         ctx.beginPath();
-        ctx.arc(
-            enemy.x,
-            enemy.y,
-            enemy.r,
-            0,
-            Math.PI * 2
-        );
-
+        ctx.arc(enemy.x, enemy.y, enemy.r, 0, Math.PI * 2);
         ctx.strokeStyle = "#ffa700";
         ctx.lineWidth = 2;
         ctx.stroke();
     }
 
-    drawCircle(
-        player.x,
-        player.y,
-        player.r,
-        "#00f0ff",
-        22
-    );
+    drawCircle(player.x, player.y, player.r, "#00f0ff", 22);
 
     ctx.beginPath();
-    ctx.arc(
-        player.x,
-        player.y,
-        player.r,
-        0,
-        Math.PI * 2
-    );
-
+    ctx.arc(player.x, player.y, player.r, 0, Math.PI * 2);
     ctx.strokeStyle = "white";
     ctx.lineWidth = 2;
     ctx.stroke();
@@ -563,11 +503,7 @@ function gameLoop(timestamp) {
         return;
     }
 
-    const dt = Math.min(
-        (timestamp - lastTime) / 1000,
-        0.05
-    );
-
+    const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
     lastTime = timestamp;
 
     update(dt);
@@ -583,54 +519,44 @@ function gameLoop(timestamp) {
 function endGame() {
     running = false;
 
-    music.pause();
-    music.currentTime = 0;
-
-    gameOverAudio.currentTime = 0;
-    gameOverAudio.play().catch(() => {});
+    stopMusic();
+    playGameOverSound();
 
     finalScore.textContent = elapsed.toFixed(1) + " sn";
 
     if (elapsed > best) {
         best = elapsed;
-
         bestElement.textContent = best.toFixed(1);
 
         try {
-            localStorage.setItem(
-                "neonBest",
-                best.toString()
-            );
+            localStorage.setItem("neonBest", best.toString());
         } catch (e) {}
 
         recordMessage.textContent = "🏆 YENİ REKOR!";
     } else {
-        recordMessage.textContent =
-            "Rekorun: " + best.toFixed(1) + " sn";
+        recordMessage.textContent = "Rekorun: " + best.toFixed(1) + " sn";
     }
 
     gameOverScreen.classList.remove("hidden");
 }
 
-// KLAVYE KONTROLLERİ
-window.addEventListener("keydown", (event) => {
+// KLAVYE
+window.addEventListener("keydown", event => {
     const key = event.key.toLowerCase();
 
-    if (
-        key.startsWith("arrow") ||
-        key === " "
-    ) {
+    if (key.startsWith("arrow") || key === " ") {
         event.preventDefault();
     }
 
     keys[key] = true;
 
     if (key === " " && !running) {
+        startMusic();
         startGame();
     }
 });
 
-window.addEventListener("keyup", (event) => {
+window.addEventListener("keyup", event => {
     keys[event.key.toLowerCase()] = false;
 });
 
@@ -638,36 +564,27 @@ window.addEventListener("blur", () => {
     keys = {};
 });
 
-// MOBİL DOKUNMATİK KONTROLLER
+// MOBİL DOKUNMATİK
 function movePlayerToPointer(event) {
     const rect = canvas.getBoundingClientRect();
 
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    player.x = Math.max(
-        player.r,
-        Math.min(width - player.r, x)
-    );
-
-    player.y = Math.max(
-        player.r,
-        Math.min(height - player.r, y)
-    );
+    player.x = Math.max(player.r, Math.min(width - player.r, x));
+    player.y = Math.max(player.r, Math.min(height - player.r, y));
 }
 
-canvas.addEventListener("pointerdown", (event) => {
+canvas.addEventListener("pointerdown", event => {
     if (!running || pointerId !== null) return;
 
     pointerId = event.pointerId;
     canvas.setPointerCapture(event.pointerId);
-
     movePlayerToPointer(event);
 });
 
-canvas.addEventListener("pointermove", (event) => {
+canvas.addEventListener("pointermove", event => {
     if (!running || event.pointerId !== pointerId) return;
-
     movePlayerToPointer(event);
 });
 
@@ -680,16 +597,29 @@ function releasePointer(event) {
 canvas.addEventListener("pointerup", releasePointer);
 canvas.addEventListener("pointercancel", releasePointer);
 
-// BUTONLAR
-document.getElementById("startBtn")
-    .addEventListener("click", startGame);
+// OYUN BUTONLARI - SESİ DOKUNMAYLA BAŞLAT
+document.getElementById("startBtn").addEventListener("click", () => {
+    startMusic();
+    startGame();
+});
 
-document.getElementById("restartBtn")
-    .addEventListener("click", startGame);
+document.getElementById("restartBtn").addEventListener("click", () => {
+    startMusic();
+    startGame();
+});
 
-// İlk çizim
+// SAYFA GİZLENİNCE MÜZİĞİ DURAKLAT
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+        music.pause();
+        keys = {};
+    } else if (running && !muted) {
+        music.play().catch(() => {});
+    }
+});
+
 resizeCanvas();
-
 </script>
+
 </body>
 </html>
