@@ -1,0 +1,695 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#101020">
+<title>Neon Kaçış | Mobil Oyun</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #080816;
+    font-family: Arial, Helvetica, sans-serif;
+    color: white;
+    touch-action: none;
+    user-select: none;
+}
+
+#app {
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    height: 65px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    background: #101025;
+    border-bottom: 1px solid #252547;
+}
+
+.logo {
+    font-size: 19px;
+    font-weight: 900;
+    color: #00f0ff;
+    letter-spacing: 1px;
+}
+
+.stats {
+    display: flex;
+    gap: 18px;
+    font-family: monospace;
+    font-size: 15px;
+}
+
+.stats span {
+    color: #00f0ff;
+}
+
+#gameArea {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    background: #1a1a2e;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+}
+
+.screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(8, 8, 22, .88);
+    z-index: 5;
+}
+
+.screen.hidden {
+    display: none;
+}
+
+.panel {
+    width: min(100%, 420px);
+    padding: 35px 25px;
+    text-align: center;
+    background: #14142b;
+    border: 1px solid #303052;
+    border-radius: 20px;
+    box-shadow: 0 0 40px rgba(0, 240, 255, .08);
+}
+
+.panel h1 {
+    margin: 0 0 15px;
+    color: #00f0ff;
+    font-size: clamp(32px, 8vw, 48px);
+    text-shadow: 0 0 20px rgba(0, 240, 255, .4);
+}
+
+.panel h2 {
+    color: #ff003c;
+    font-size: 38px;
+    margin: 0 0 15px;
+}
+
+.panel p {
+    color: #b8b8d0;
+    line-height: 1.6;
+}
+
+button {
+    border: 0;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.mainBtn {
+    margin-top: 20px;
+    width: 100%;
+    padding: 17px;
+    border-radius: 12px;
+    background: #00f0ff;
+    color: #07101a;
+    font-size: 17px;
+    font-weight: 900;
+}
+
+.mainBtn:active {
+    transform: scale(.97);
+}
+
+footer {
+    min-height: 44px;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #101025;
+    color: #8888aa;
+    font-size: 12px;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+#muteBtn {
+    background: #252543;
+    color: white;
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 16px;
+}
+
+@media(max-width: 600px) {
+    header {
+        height: 58px;
+        padding: 0 12px;
+    }
+
+    .logo {
+        font-size: 15px;
+    }
+
+    .stats {
+        font-size: 12px;
+        gap: 10px;
+    }
+
+    footer {
+        font-size: 11px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div id="app">
+
+<header>
+    <div class="logo">NEON KAÇIŞ</div>
+
+    <div class="stats">
+        <div>SÜRE: <span id="score">0.0</span></div>
+        <div>REKOR: <span id="best">0.0</span></div>
+    </div>
+
+    <button id="muteBtn" aria-label="Sesi aç veya kapat">🔊</button>
+</header>
+
+<div id="gameArea">
+    <canvas id="game"></canvas>
+
+    <div class="screen" id="startScreen">
+        <div class="panel">
+            <h1>NEON KAÇIŞ</h1>
+            <p>
+                Kırmızı düşmanlardan kaç ve mümkün
+                olduğunca uzun süre hayatta kal!
+            </p>
+            <p>
+                📱 Mobil: Parmağınla sürükle<br>
+                💻 Bilgisayar: WASD veya yön tuşları
+            </p>
+            <button class="mainBtn" id="startBtn">
+                OYUNA BAŞLA
+            </button>
+        </div>
+    </div>
+
+    <div class="screen hidden" id="gameOverScreen">
+        <div class="panel">
+            <h2>OYUN BİTTİ!</h2>
+            <p>Hayatta kaldığın süre:</p>
+            <h1 id="finalScore">0.0 sn</h1>
+            <p id="recordMessage"></p>
+            <button class="mainBtn" id="restartBtn">
+                TEKRAR OYNA
+            </button>
+        </div>
+    </div>
+</div>
+
+<footer>
+    NEON KAÇIŞ • Mobil ve Masaüstü
+</footer>
+
+</div>
+
+<script>
+"use strict";
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const area = document.getElementById("gameArea");
+
+const scoreElement = document.getElementById("score");
+const bestElement = document.getElementById("best");
+const finalScore = document.getElementById("finalScore");
+const recordMessage = document.getElementById("recordMessage");
+
+const startScreen = document.getElementById("startScreen");
+const gameOverScreen = document.getElementById("gameOverScreen");
+const muteBtn = document.getElementById("muteBtn");
+
+let width = 0;
+let height = 0;
+let running = false;
+let lastTime = 0;
+let elapsed = 0;
+let spawnTimer = 0;
+let animationId = null;
+let pointerId = null;
+
+let enemies = [];
+let particles = [];
+let keys = {};
+
+let best = 0;
+
+try {
+    best = Number(localStorage.getItem("neonBest")) || 0;
+} catch (e) {}
+
+bestElement.textContent = best.toFixed(1);
+
+const player = {
+    x: 100,
+    y: 100,
+    r: 15,
+    speed: 360
+};
+
+// Ses dosyaları isteğe bağlıdır.
+const music = new Audio("OYUN İÇİ MÜZİK.wav");
+const gameOverAudio = new Audio("OYUN BİTTİ.wav");
+
+music.loop = true;
+music.volume = 0.35;
+gameOverAudio.volume = 0.6;
+
+let muted = false;
+
+muteBtn.addEventListener("click", () => {
+    muted = !muted;
+
+    music.muted = muted;
+    gameOverAudio.muted = muted;
+
+    muteBtn.textContent = muted ? "🔇" : "🔊";
+});
+
+function resizeCanvas() {
+    const rect = area.getBoundingClientRect();
+
+    width = rect.width;
+    height = rect.height;
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    player.x = Math.max(
+        player.r,
+        Math.min(width - player.r, player.x)
+    );
+
+    player.y = Math.max(
+        player.r,
+        Math.min(height - player.r, player.y)
+    );
+
+    if (!running) draw();
+}
+
+window.addEventListener("resize", resizeCanvas);
+
+function startGame() {
+    if (animationId !== null) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+    }
+
+    enemies = [];
+    particles = [];
+    keys = {};
+
+    elapsed = 0;
+    spawnTimer = 0;
+    lastTime = performance.now();
+
+    player.x = Math.min(100, width / 3);
+    player.y = height / 2;
+
+    scoreElement.textContent = "0.0";
+
+    startScreen.classList.add("hidden");
+    gameOverScreen.classList.add("hidden");
+
+    running = true;
+
+    gameOverAudio.pause();
+    gameOverAudio.currentTime = 0;
+
+    music.currentTime = 0;
+    music.play().catch(() => {});
+
+    animationId = requestAnimationFrame(gameLoop);
+}
+
+function spawnEnemy() {
+    const size = 20 + Math.random() * 40;
+
+    enemies.push({
+        x: width + size,
+        y: size / 2 + Math.random() *
+           Math.max(0, height - size),
+        r: size / 2,
+        speed: 190 + Math.random() * 190 + elapsed * 2
+    });
+}
+
+function update(dt) {
+    elapsed += dt;
+    scoreElement.textContent = elapsed.toFixed(1);
+
+    let dx = 0;
+    let dy = 0;
+
+    if (keys["arrowup"] || keys["w"]) dy--;
+    if (keys["arrowdown"] || keys["s"]) dy++;
+    if (keys["arrowleft"] || keys["a"]) dx--;
+    if (keys["arrowright"] || keys["d"]) dx++;
+
+    if (dx !== 0 || dy !== 0) {
+        const length = Math.hypot(dx, dy);
+
+        player.x += dx / length * player.speed * dt;
+        player.y += dy / length * player.speed * dt;
+    }
+
+    player.x = Math.max(
+        player.r,
+        Math.min(width - player.r, player.x)
+    );
+
+    player.y = Math.max(
+        player.r,
+        Math.min(height - player.r, player.y)
+    );
+
+    spawnTimer += dt;
+
+    const spawnInterval = Math.max(
+        0.14,
+        0.5 - elapsed * 0.008
+    );
+
+    while (spawnTimer >= spawnInterval) {
+        spawnEnemy();
+        spawnTimer -= spawnInterval;
+    }
+
+    for (let i = enemies.length - 1; i >= 0; i--) {
+        const enemy = enemies[i];
+
+        enemy.x -= enemy.speed * dt;
+
+        if (enemy.x + enemy.r < 0) {
+            enemies.splice(i, 1);
+            continue;
+        }
+
+        const distance = Math.hypot(
+            player.x - enemy.x,
+            player.y - enemy.y
+        );
+
+        if (distance < player.r + enemy.r - 3) {
+            endGame();
+            return;
+        }
+    }
+
+    if (Math.random() < 0.45) {
+        particles.push({
+            x: player.x,
+            y: player.y,
+            life: 0.35,
+            r: Math.random() * 3 + 1
+        });
+    }
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].life -= dt;
+
+        if (particles[i].life <= 0) {
+            particles.splice(i, 1);
+        }
+    }
+}
+
+function drawGrid() {
+    ctx.strokeStyle = "rgba(0,240,255,0.055)";
+    ctx.lineWidth = 1;
+
+    const gridSize = 40;
+    const offset = (elapsed * 25) % gridSize;
+
+    for (let x = -gridSize + offset; x < width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+    }
+
+    for (let y = 0; y < height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+    }
+}
+
+function drawCircle(x, y, radius, color, glow) {
+    ctx.save();
+
+    ctx.shadowColor = color;
+    ctx.shadowBlur = glow;
+
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    ctx.restore();
+}
+
+function draw() {
+    ctx.clearRect(0, 0, width, height);
+
+    ctx.fillStyle = "#1a1a2e";
+    ctx.fillRect(0, 0, width, height);
+
+    drawGrid();
+
+    for (const particle of particles) {
+        ctx.globalAlpha = Math.max(0, particle.life / 0.35);
+
+        drawCircle(
+            particle.x,
+            particle.y,
+            particle.r,
+            "#00f0ff",
+            8
+        );
+    }
+
+    ctx.globalAlpha = 1;
+
+    for (const enemy of enemies) {
+        drawCircle(
+            enemy.x,
+            enemy.y,
+            enemy.r,
+            "#ff003c",
+            15
+        );
+
+        ctx.beginPath();
+        ctx.arc(
+            enemy.x,
+            enemy.y,
+            enemy.r,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.strokeStyle = "#ffa700";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    drawCircle(
+        player.x,
+        player.y,
+        player.r,
+        "#00f0ff",
+        22
+    );
+
+    ctx.beginPath();
+    ctx.arc(
+        player.x,
+        player.y,
+        player.r,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+}
+
+function gameLoop(timestamp) {
+    if (!running) {
+        animationId = null;
+        return;
+    }
+
+    const dt = Math.min(
+        (timestamp - lastTime) / 1000,
+        0.05
+    );
+
+    lastTime = timestamp;
+
+    update(dt);
+    draw();
+
+    if (running) {
+        animationId = requestAnimationFrame(gameLoop);
+    } else {
+        animationId = null;
+    }
+}
+
+function endGame() {
+    running = false;
+
+    music.pause();
+    music.currentTime = 0;
+
+    gameOverAudio.currentTime = 0;
+    gameOverAudio.play().catch(() => {});
+
+    finalScore.textContent = elapsed.toFixed(1) + " sn";
+
+    if (elapsed > best) {
+        best = elapsed;
+
+        bestElement.textContent = best.toFixed(1);
+
+        try {
+            localStorage.setItem(
+                "neonBest",
+                best.toString()
+            );
+        } catch (e) {}
+
+        recordMessage.textContent = "🏆 YENİ REKOR!";
+    } else {
+        recordMessage.textContent =
+            "Rekorun: " + best.toFixed(1) + " sn";
+    }
+
+    gameOverScreen.classList.remove("hidden");
+}
+
+// KLAVYE KONTROLLERİ
+window.addEventListener("keydown", (event) => {
+    const key = event.key.toLowerCase();
+
+    if (
+        key.startsWith("arrow") ||
+        key === " "
+    ) {
+        event.preventDefault();
+    }
+
+    keys[key] = true;
+
+    if (key === " " && !running) {
+        startGame();
+    }
+});
+
+window.addEventListener("keyup", (event) => {
+    keys[event.key.toLowerCase()] = false;
+});
+
+window.addEventListener("blur", () => {
+    keys = {};
+});
+
+// MOBİL DOKUNMATİK KONTROLLER
+function movePlayerToPointer(event) {
+    const rect = canvas.getBoundingClientRect();
+
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    player.x = Math.max(
+        player.r,
+        Math.min(width - player.r, x)
+    );
+
+    player.y = Math.max(
+        player.r,
+        Math.min(height - player.r, y)
+    );
+}
+
+canvas.addEventListener("pointerdown", (event) => {
+    if (!running || pointerId !== null) return;
+
+    pointerId = event.pointerId;
+    canvas.setPointerCapture(event.pointerId);
+
+    movePlayerToPointer(event);
+});
+
+canvas.addEventListener("pointermove", (event) => {
+    if (!running || event.pointerId !== pointerId) return;
+
+    movePlayerToPointer(event);
+});
+
+function releasePointer(event) {
+    if (event.pointerId === pointerId) {
+        pointerId = null;
+    }
+}
+
+canvas.addEventListener("pointerup", releasePointer);
+canvas.addEventListener("pointercancel", releasePointer);
+
+// BUTONLAR
+document.getElementById("startBtn")
+    .addEventListener("click", startGame);
+
+document.getElementById("restartBtn")
+    .addEventListener("click", startGame);
+
+// İlk çizim
+resizeCanvas();
+
+</script>
+</body>
+</html>
